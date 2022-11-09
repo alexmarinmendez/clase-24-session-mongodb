@@ -28,3 +28,7 @@ app.listen(app.get("port"), () => console.log("Server up"));
 app.get('/', sessionChecker, (req, res) => {
     res.redirect('/login')
 })
+
+app.route('/login').get(sessionChecker, (req, res) => {
+    res.sendFile(__dirname + '/public/login.html')
+})
