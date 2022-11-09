@@ -1,6 +1,7 @@
 const express = require('express');
 const cookieParser = require("cookie-parser");
 const session = require("express-session");
+const User = require('./models/User')
 
 const app = express();
 app.set("port", 8080);
@@ -31,4 +32,22 @@ app.get('/', sessionChecker, (req, res) => {
 
 app.route('/login').get(sessionChecker, (req, res) => {
     res.sendFile(__dirname + '/public/login.html')
+})
+
+app.route('/signup').get(sessionChecker, (req, res) => {
+    res.sendFile(__dirname + '/public/signup.html')
+}).post((req, res) => {
+    let user = new User({
+        username: req.body.username,
+        email: req.body.email,
+        password: req.body.password
+    })
+    user.save((err, docs) => {
+        if (err) {
+            res.redirect('/signup')
+        } else {
+            req.session.user = docs
+            res.redirect('/dashboard')
+        }
+    })
 })
