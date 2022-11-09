@@ -13,7 +13,7 @@ app.use(session({
     secret: 'c0d3r',
     resave: false,
     saveUninitialized: false,
-    cookie: { maxAge: 60000 }
+    cookie: { maxAge: 600000 }
 }))
 
 const sessionChecker = (req, res, next) => {
@@ -32,6 +32,23 @@ app.get('/', sessionChecker, (req, res) => {
 
 app.route('/login').get(sessionChecker, (req, res) => {
     res.sendFile(__dirname + '/public/login.html')
+}).post(async (req, res) => {
+    let username = req.body.username
+    let password = req.body.password
+
+    try {
+        let user = await User.findOne({ username: username }).exec()
+        if (!user) {
+            res.redirect('/login')
+        }
+        if (user.password != password) {
+            res.redirect('/login')
+        }
+        req.session.user = user
+        res.redirect('/dashboard')
+    } catch (err) {
+        console.log(err)
+    }
 })
 
 app.route('/signup').get(sessionChecker, (req, res) => {
@@ -50,4 +67,12 @@ app.route('/signup').get(sessionChecker, (req, res) => {
             res.redirect('/dashboard')
         }
     })
+})
+
+app.get('/dashboard', (req, res) => {
+    if (req.session.user && req.cookies.user_sid) {
+        res.sendFile(__dirname+'/public/dashboard.html')
+    } else {
+        res.redirect('/login')
+    }
 })
